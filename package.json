@@ -1,0 +1,28 @@
+{
+  "name": "dedications-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "dev:report": "wrangler dev --config report-renderer/wrangler.jsonc",
+    "deploy": "wrangler deploy",
+    "deploy:report": "wrangler deploy --config report-renderer/wrangler.jsonc",
+    "db:migrate:local": "wrangler d1 migrations apply dedications --local",
+    "db:migrate:remote": "wrangler d1 migrations apply dedications --remote",
+    "db:seed:local": "wrangler d1 execute dedications --local --file seeds/dev.sql",
+    "db:import:local": "wrangler d1 execute dedications --local --file",
+    "db:import:remote": "wrangler d1 execute dedications --remote --file",
+    "typecheck": "tsc --noEmit",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "@cloudflare/puppeteer": "^1.1.0",
+    "hono": "^4.8.0"
+  },
+  "devDependencies": {
+    "node-addon-api": "^8.5.0",
+    "node-gyp": "^11.2.0",
+    "typescript": "^5.8.0",
+    "wrangler": "^4.21.0"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "dedications-app",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-21",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dedications",
+      "database_id": "5b615ab1-70fd-44a0-9312-fc42bb0d1282",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "services": [
+    {
+      "binding": "REPORT_RENDERER",
+      "service": "dedications-report-renderer"
+    }
+  ],
+  "vars": {
+    "AUTH_EMAIL_HEADER": "x-authentik-email",
+    "AUTH_NAME_HEADER": "x-authentik-name",
+    "AUTH_GROUPS_HEADER": "x-authentik-groups",
+    "ADMIN_GROUP": "dedications-admin",
+    "MASTERS_URL": "https://osystem-masters.kusanaginoturugi.workers.dev"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
