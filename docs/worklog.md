@@ -42,3 +42,18 @@
 - `/tmp/dedications-production-d1-import.sql` を remote D1 に import。
 - remote D1 の件数一致を確認: users 2, fellowships 93, events 0, orders 251。
 - remote D1 で orders の user/fellowship 参照切れが 0 件であることを確認。
+
+## 2026-10-24 セキュリティ点検
+
+[www の共通手順](https://github.com/kusanaginoturugi/www/blob/main/docs/security-runbook.md) に沿って点検した。どちらの Worker も Cloudflare には未デプロイ (`wrangler deployments list` が `Worker does not exist`、workers.dev は 404) なので、外部から悪用された可能性はない。
+
+- 認証: `requireUser` が `x-authentik-email` / `x-authentik-groups` をそのまま信用していた。Worker の URL に直接リクエストすれば、ヘッダを付けるだけで任意の利用者・管理者になれる。前段のプロキシが送る `x-auth-proxy-secret` が secret `AUTH_PROXY_SECRET` と一致したときだけヘッダを信用するようにした。secret が未設定なら 503 で拒否する。Cloudflare Access にする場合は、この確認を `Cf-Access-Jwt-Assertion` の JWT 検証に置き換える。
+- 公開 URL: 両 Worker に `workers_dev: false` / `preview_urls: false` を設定。renderer は service binding からだけ呼ばれる。公開されると誰でも任意の HTML を Browser Run で PDF にできてしまう。
+- CSRF: 前段のプロキシのセッション Cookie で他サイトから POST されるのを防ぐため、`hono/csrf` で Origin を確認する。
+- ヘッダ: `hono/secure-headers` で CSP (`script-src 'none'`、`style-src` は layout の `<style>` のため `'unsafe-inline'`)、`Permissions-Policy` などを付ける。
+- HTML 出力は `escapeHtml` / `escapeAttr` でエスケープ済み。fellowships の同期先は vars の固定 URL。
+- npm audit (更新前): 16 件 (critical 1、high 14、moderate 1)。hono 4.12.26 → 4.13.13、@cloudflare/puppeteer 1.1.0 → 1.4.0、wrangler 4.103.0 → 4.152.0、`npm audit fix` で 10 件。
+  - 残り (production): basic-ftp と extract-zip (high)。@cloudflare/puppeteer → @puppeteer/browsers の依存で、Node でブラウザを取得するときだけ使う。`wrangler deploy --dry-run` のバンドル (source map) に含まれないことを確認した。extract-zip は修正版がなく、basic-ftp の修正版は get-uri 6 の範囲外。CI はこの2つの advisory だけ除外し、バンドルに入っていないことも確認する。@cloudflare/puppeteer が @puppeteer/browsers の依存を外すか、修正版が範囲に入ったら除外をやめる。
+  - 残り (dev): wrangler → miniflare → undici 7.29.1 (修正は 7.30.1)。ローカル開発だけで使う。wrangler の更新で解消する。
+- GitHub: CI (typecheck、両 Worker の dry-run build、npm audit、週次実行)、CodeQL (actions / javascript-typescript)、Dependency Review、Dependabot (npm / github-actions、週次) を追加。Dependabot alerts を有効化。
+- 検証: `wrangler dev` で、ヘッダだけ → 401、secret 違い → 401、secret 一致 → 200、secret 未設定 → 503、他オリジンからの POST → 403、同一オリジンの POST → 通過、レスポンスに CSP 等が付くことを確認。

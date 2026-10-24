@@ -20,7 +20,7 @@ local / remote D1 には本番 SQLite 由来のデータを import 済み。
 ## 次にやること
 
 1. renderer Worker の PDF 生成を本番で確認
-2. authentik / Cloudflare Access の本番ヘッダ仕様を確定
+2. authentik / Cloudflare Access の本番ヘッダ仕様を確定 (現状は `AUTH_PROXY_SECRET` の共有 secret。Access にするなら JWT 検証に置き換える)
 3. Rails 版の入力フォーム UX に寄せる
 4. CSV 帳票を実装
 5. Worker deploy と本番 smoke test

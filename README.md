@@ -9,6 +9,8 @@ Cloudflare Workers 移植版。
 - DB: Cloudflare D1
 - PDF: Cloudflare Browser Run (`@cloudflare/puppeteer`) で HTML から生成
 - Auth: authentik / Cloudflare Access 前提。アプリ内パスワード認証は持たない
+  - 認証ヘッダは、前段のプロキシが送る `x-auth-proxy-secret` が secret `AUTH_PROXY_SECRET` (`wrangler secret put AUTH_PROXY_SECRET`) と一致したときだけ信用する。未設定なら全リクエストを 503 で拒否する
+  - workers.dev / preview URL は無効。公開するときは前段のプロキシ経由だけにする
 
 ## 構成
 
@@ -23,12 +25,15 @@ Cloudflare Workers 移植版。
 
 ```sh
 npm install
+cp .dev.vars.example .dev.vars
 npm run cf-typegen
 npm run db:migrate:local
 npm run db:seed:local
 npm run typecheck
 npm run dev
 ```
+
+ローカルでは `x-auth-proxy-secret: local-dev-secret` と `x-authentik-email` ヘッダを付けてアクセスする。
 
 PDF renderer は別 Worker として動かす。
 
