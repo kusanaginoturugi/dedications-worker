@@ -22,7 +22,7 @@
   "devDependencies": {
     "node-addon-api": "^8.9.2",
     "node-gyp": "^11.2.0",
-    "typescript": "^5.8.0",
+    "typescript": "^7.0.2",
     "wrangler": "^4.152.0"
   }
 }
