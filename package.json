@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "node-addon-api": "^8.9.2",
-    "node-gyp": "^11.2.0",
+    "node-gyp": "^13.1.0",
     "typescript": "^5.8.0",
     "wrangler": "^4.152.0"
   }
