@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
+      - name: Build workers
+        run: |
+          npx wrangler deploy --dry-run --outdir dist/app
+          npx wrangler deploy --dry-run --config report-renderer/wrangler.jsonc --outdir "$PWD/dist/report-renderer"
+
+      - name: Audit production dependencies
+        # basic-ftp と extract-zip は @cloudflare/puppeteer -> @puppeteer/browsers (Node でブラウザを取得する処理) の依存で、
+        # Worker のバンドルには入らない。修正版がこの依存範囲にないため、この2つの advisory だけ除外する。
+        run: |
+          npm audit --omit=dev --json > audit.json || true
+          jq -r '.vulnerabilities | to_entries[] | .key as $name | .value.via[] | objects
+            | select(.severity == "high" or .severity == "critical")
+            | select($name != "basic-ftp" and $name != "extract-zip")
+            | [$name, .severity, .title, .url] | @tsv' audit.json > findings.tsv
+          if [ -s findings.tsv ]; then
+            cat findings.tsv
+            echo "::error::npm audit で high 以上の指摘があります"
+            exit 1
+          fi
+
+      - name: Check excluded packages are not bundled
+        run: |
+          if grep -lE 'basic-ftp|extract-zip|@puppeteer/browsers' dist/app/*.js dist/report-renderer/*.js; then
+            echo "::error::除外している依存がバンドルに含まれています"
+            exit 1
+          fi
