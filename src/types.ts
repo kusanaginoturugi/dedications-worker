@@ -1,6 +1,8 @@
 export type Bindings = {
   DB: D1Database;
   REPORT_RENDERER: Fetcher;
+  AUTH_PROXY_SECRET?: string;
+  AUTH_PROXY_SECRET_HEADER?: string;
   AUTH_EMAIL_HEADER?: string;
   AUTH_NAME_HEADER?: string;
   AUTH_GROUPS_HEADER?: string;

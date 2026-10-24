@@ -3,6 +3,9 @@
   "name": "dedications-app",
   "main": "src/index.ts",
   "compatibility_date": "2026-06-21",
+  // 前段の認証プロキシを通さずに届く公開 URL を作らない
+  "workers_dev": false,
+  "preview_urls": false,
   "compatibility_flags": [
     "nodejs_compat"
   ],

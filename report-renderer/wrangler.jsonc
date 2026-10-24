@@ -3,6 +3,9 @@
   "name": "dedications-report-renderer",
   "main": "src/index.ts",
   "compatibility_date": "2026-06-21",
+  // app Worker から service binding で呼ぶだけなので公開 URL は作らない
+  "workers_dev": false,
+  "preview_urls": false,
   "compatibility_flags": [
     "nodejs_compat"
   ],

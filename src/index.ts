@@ -1,5 +1,7 @@
 import { Hono } from "hono";
 import type { Context } from "hono";
+import { csrf } from "hono/csrf";
+import { secureHeaders } from "hono/secure-headers";
 import { requireAdmin, requireUser } from "./auth";
 import { formDefinitions, totalAmount, totalQuantity } from "./domain/orders";
 import type { HonoEnv } from "./types";
@@ -67,8 +69,31 @@ type OrderInput = {
 
 const app = new Hono<HonoEnv>();
 
+app.use("*", secureHeaders({
+  contentSecurityPolicy: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'none'"],
+    // layout の <style> と style 属性のため
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", "data:"],
+    objectSrc: ["'none'"],
+    baseUri: ["'self'"],
+    formAction: ["'self'"],
+    frameAncestors: ["'none'"],
+  },
+  permissionsPolicy: {
+    camera: [],
+    microphone: [],
+    geolocation: [],
+    payment: [],
+    usb: [],
+  },
+}));
+
 app.get("/health", (c) => c.json({ ok: true, worker: "dedications-app" }));
 
+// 前段のプロキシのセッション Cookie で他サイトから POST されないよう、Origin を確認する
+app.use("*", csrf());
 app.use("*", requireUser);
 
 app.get("/", (c) => c.redirect("/orders"));
