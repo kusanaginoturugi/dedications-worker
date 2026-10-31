@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@cloudflare/puppeteer": "^1.4.0",
-    "hono": "^4.13.13"
+    "hono": "^4.13.14"
   },
   "devDependencies": {
     "node-addon-api": "^8.9.2",
